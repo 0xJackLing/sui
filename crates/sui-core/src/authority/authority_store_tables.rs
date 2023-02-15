@@ -174,6 +174,12 @@ impl AuthorityPerpetualTables {
             prev: None,
         }
     }
+
+    pub fn checkpoint_db(&self, path: &Path) -> SuiResult {
+        self.objects
+            .checkpoint(path)
+            .map_err(SuiError::StorageError)
+    }
 }
 
 impl ObjectStore for &AuthorityPerpetualTables {

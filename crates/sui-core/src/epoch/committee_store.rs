@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use rocksdb::Options;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use sui_storage::default_db_options;
 use sui_types::base_types::ObjectID;
 use sui_types::committee::{Committee, EpochId};
-use sui_types::error::SuiResult;
+use sui_types::error::{SuiError, SuiResult};
 use typed_store::rocks::{DBMap, DBOptions, MetricConf};
 use typed_store::traits::{TableSummary, TypedStoreDebug};
 
@@ -75,6 +75,12 @@ impl CommitteeStore {
             // when initializing the store.
             .unwrap()
             .1
+    }
+
+    pub fn checkpoint_db(&self, path: &Path) -> SuiResult {
+        self.committee_map
+            .checkpoint(path)
+            .map_err(SuiError::StorageError)
     }
 
     fn database_is_empty(&self) -> bool {

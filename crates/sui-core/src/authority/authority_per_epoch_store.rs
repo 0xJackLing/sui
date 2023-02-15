@@ -325,6 +325,28 @@ impl AuthorityEpochTables {
             .map(|(_k, v)| v)
             .collect()
     }
+
+    pub fn checkpoint_epoch_start_configuration(
+        &self,
+        path: &Path,
+        epoch_start_configuration: Arc<EpochStartConfiguration>,
+    ) -> SuiResult {
+        let epoch_db = AuthorityEpochTables::open_tables_read_write(
+            path.to_path_buf(),
+            MetricConf::default(),
+            None,
+            None,
+        );
+        epoch_db
+            .epoch_start_configuration
+            .insert(&(), &epoch_start_configuration)
+            .map_err(SuiError::StorageError)?;
+        epoch_db
+            .epoch_start_configuration
+            .flush()
+            .map_err(SuiError::StorageError)?;
+        Ok(())
+    }
 }
 
 impl AuthorityPerEpochStore {
@@ -851,6 +873,12 @@ impl AuthorityPerEpochStore {
             .collect();
 
         Ok(next_versions)
+    }
+
+    pub fn checkpoint_db(&self, path: &Path) -> SuiResult {
+        self.tables
+            .checkpoint_epoch_start_configuration(path, self.epoch_start_configuration.clone())?;
+        Ok(())
     }
 
     pub async fn set_assigned_shared_object_versions(

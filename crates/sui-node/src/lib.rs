@@ -18,6 +18,7 @@ use narwhal_network::metrics::MetricsMakeCallbackHandler;
 use narwhal_network::metrics::{NetworkConnectionMetrics, NetworkMetrics};
 use prometheus::Registry;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use sui_config::{ConsensusConfig, NodeConfig};
@@ -63,6 +64,7 @@ pub mod metrics;
 pub use handle::SuiNodeHandle;
 use narwhal_config::SharedWorkerCache;
 use narwhal_types::TransactionsClient;
+use sui_config::node::DBCheckpointConfig;
 use sui_core::authority::authority_per_epoch_store::{
     AuthorityPerEpochStore, EpochStartConfiguration,
 };
@@ -116,6 +118,9 @@ pub struct SuiNode {
     connection_monitor_status: Arc<ConnectionMonitorStatus>,
 
     end_of_epoch_channel: tokio::sync::broadcast::Sender<Committee>,
+
+    #[cfg(test)]
+    epoch_at_start: EpochId,
 
     #[cfg(msim)]
     sim_node: sui_simulator::runtime::NodeHandle,
@@ -228,7 +233,15 @@ impl SuiNode {
         let (p2p_network, discovery_handle, state_sync_handle) =
             Self::create_p2p_network(&config, state_sync_store, &prometheus_registry)?;
 
-        // Create Authority State
+        let db_checkpoint_config = if config.db_checkpoint_config.checkpoint_path.is_none() {
+            DBCheckpointConfig {
+                checkpoint_path: Some(config.db_checkpoint_path()),
+                ..config.db_checkpoint_config
+            }
+        } else {
+            config.db_checkpoint_config.clone()
+        };
+
         let state = AuthorityState::new(
             config.protocol_public_key(),
             secret,
@@ -243,10 +256,9 @@ impl SuiNode {
             &config.authority_store_pruning_config,
             genesis.objects(),
             config.epoch_duration_ms,
-            &config.state_snapshot_config,
+            &db_checkpoint_config,
         )
         .await;
-
         // ensure genesis txn was executed
         if epoch_store.epoch() == 0 {
             let txn = &genesis.transaction();
@@ -272,7 +284,7 @@ impl SuiNode {
                 TransactiondOrchestrator::new_with_network_clients(
                     state.clone(),
                     end_of_epoch_channel.subscribe(),
-                    config.db_path(),
+                    &config.db_path(),
                     &prometheus_registry,
                 )
                 .await?,
@@ -350,6 +362,9 @@ impl SuiNode {
             end_of_epoch_channel,
             connection_monitor_status,
 
+            #[cfg(test)]
+            epoch_at_start: cur_epoch,
+
             #[cfg(msim)]
             sim_node: sui_simulator::runtime::NodeHandle::current(),
         };
@@ -370,6 +385,10 @@ impl SuiNode {
         self.state.current_epoch_for_testing()
     }
 
+    pub fn db_checkpoint_path(&self) -> PathBuf {
+        self.config.db_checkpoint_path()
+    }
+
     // Init reconfig process by starting to reject user certs
     pub async fn close_epoch(&self, epoch_store: &Arc<AuthorityPerEpochStore>) -> SuiResult {
         info!("close_epoch (current epoch = {})", epoch_store.epoch());
@@ -388,6 +407,11 @@ impl SuiNode {
     pub async fn close_epoch_for_testing(&self) -> SuiResult {
         let epoch_store = self.state.epoch_store_for_testing();
         self.close_epoch(&epoch_store).await
+    }
+
+    #[cfg(test)]
+    pub fn get_starting_epoch_for_testing(&self) -> EpochId {
+        self.epoch_at_start
     }
 
     pub fn is_transaction_executed_in_checkpoint(

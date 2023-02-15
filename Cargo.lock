@@ -8323,6 +8323,7 @@ dependencies = [
  "sui-simulator",
  "sui-source-validation",
  "sui-swarm",
+ "sui-tool",
  "sui-types",
  "telemetry-subscribers",
  "tempfile",

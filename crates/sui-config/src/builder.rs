@@ -3,7 +3,7 @@
 
 use crate::node::{
     default_end_of_epoch_broadcast_channel_capacity, default_epoch_duration_ms,
-    AuthorityKeyPairWithPath, KeyPairWithPath, StateSnapshotConfig,
+    AuthorityKeyPairWithPath, DBCheckpointConfig, KeyPairWithPath,
 };
 use crate::{
     genesis,
@@ -441,7 +441,7 @@ impl<R: rand::RngCore + rand::CryptoRng> ConfigBuilder<R> {
                     checkpoint_executor_config: Default::default(),
                     metrics: None,
                     supported_protocol_versions: Some(supported_protocol_versions),
-                    state_snapshot_config: StateSnapshotConfig::validator_config(),
+                    db_checkpoint_config: DBCheckpointConfig::validator_config(),
                 }
             })
             .collect();

@@ -32,7 +32,7 @@ use std::time::Duration;
 use sui_types::base_types::{EpochId, TransactionDigest};
 use sui_types::crypto::{AuthoritySignInfo, AuthorityStrongQuorumSignInfo};
 use sui_types::digests::{CheckpointContentsDigest, CheckpointDigest};
-use sui_types::error::SuiResult;
+use sui_types::error::{SuiError, SuiResult};
 use sui_types::gas::GasCostSummary;
 use sui_types::messages::{
     ConsensusTransactionKey, SingleTransactionKind, TransactionEffects, TransactionKind,
@@ -383,6 +383,12 @@ impl CheckpointStore {
                 .epoch_rolling_gas_cost_summary
                 .computation_cost,
         })
+    }
+
+    pub fn checkpoint_db(&self, path: &Path) -> SuiResult {
+        self.checkpoint_content
+            .checkpoint(path)
+            .map_err(SuiError::StorageError)
     }
 }
 
