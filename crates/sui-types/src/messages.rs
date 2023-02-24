@@ -173,6 +173,11 @@ pub struct ChangeEpoch {
     pub storage_rebate: u64,
     /// Unix timestamp when epoch started
     pub epoch_start_timestamp_ms: u64,
+    /// System packages (specifically framework and move stdlib) that are written before the new
+    /// epoch starts. This tracks framework upgrades on chain. When executing the ChangeEpoch txn,
+    /// the validator must write out the specified objects below.
+    /// If None, no upgrades were performed this epoch.
+    pub system_packages: Option<Vec<ObjectRef>>,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
@@ -1603,6 +1608,7 @@ impl VerifiedTransaction {
         computation_charge: u64,
         storage_rebate: u64,
         epoch_start_timestamp_ms: u64,
+        system_packages: Option<Vec<ObjectRef>>,
     ) -> Self {
         ChangeEpoch {
             epoch: next_epoch,
@@ -1611,6 +1617,7 @@ impl VerifiedTransaction {
             computation_charge,
             storage_rebate,
             epoch_start_timestamp_ms,
+            system_packages,
         }
         .pipe(SingleTransactionKind::ChangeEpoch)
         .pipe(Self::new_system_transaction)
@@ -2889,8 +2896,13 @@ pub struct AuthorityCapabilities {
     /// (Currently, we just set this to the current time in milliseconds since the epoch, but this
     /// should not be interpreted as a timestamp.)
     pub generation: u64,
+
     /// ProtocolVersions that the authority supports.
     pub supported_protocol_versions: SupportedProtocolVersions,
+
+    /// The ObjectRefs of all versions of system packages that the validator possesses.
+    /// Used to determine whether to do a framework/movestdlib upgrade.
+    pub available_system_packages: Vec<ObjectRef>,
 }
 
 impl Debug for AuthorityCapabilities {
@@ -2910,6 +2922,7 @@ impl AuthorityCapabilities {
     pub fn new(
         authority: AuthorityName,
         supported_protocol_versions: SupportedProtocolVersions,
+        available_system_packages: Vec<ObjectRef>,
     ) -> Self {
         let generation = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -2921,6 +2934,7 @@ impl AuthorityCapabilities {
             authority,
             generation,
             supported_protocol_versions,
+            available_system_packages,
         }
     }
 }
