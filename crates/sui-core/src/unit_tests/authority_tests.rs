@@ -4675,7 +4675,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(1), Some(sort(vec![o1, o2]))),
+        (ver(1), sort(vec![o1, o2])),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4692,7 +4692,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(1), None),
+        (ver(1), vec![]),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4704,7 +4704,7 @@ fn test_choose_next_system_packages() {
     protocol_config.set_buffer_stake_for_protocol_upgrade_bps_for_testing(0);
 
     assert_eq!(
-        (ver(1), Some(sort(vec![o1, o2]))),
+        (ver(1), sort(vec![o1, o2])),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4721,7 +4721,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(1), None),
+        (ver(1), vec![]),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4738,7 +4738,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(2), Some(sort(vec![o1, o2]))),
+        (ver(2), sort(vec![o1, o2])),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4755,7 +4755,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(1), None),
+        (ver(1), vec![]),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
@@ -4772,7 +4772,7 @@ fn test_choose_next_system_packages() {
     ];
 
     assert_eq!(
-        (ver(1), None),
+        (ver(1), vec![]),
         AuthorityState::choose_protocol_version_and_system_packages(
             &committee,
             &protocol_config,
