@@ -303,7 +303,7 @@ export const AuthorityName = string();
 
 export const TransactionBytes = object({
   txBytes: string(),
-  gas: SuiObjectRef,
+  gas: array(SuiObjectRef),
   // TODO: Type input_objects field
   inputObjects: unknown(),
 });
@@ -470,7 +470,7 @@ export function getGasData(
 
 export function getTransactionGasObject(
   tx: SuiTransactionResponse | CertifiedTransaction,
-): SuiObjectRef {
+): SuiObjectRef[] {
   return getGasData(tx).payment;
 }
 

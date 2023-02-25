@@ -673,7 +673,7 @@ fn test_sponsored_transaction_message() {
     }));
     let gas_obj_ref = random_object_ref();
     let gas_data = GasData {
-        payment: gas_obj_ref,
+        payment: vec![gas_obj_ref],
         owner: sponsor,
         price: DUMMY_GAS_PRICE,
         budget: 10000,
@@ -698,7 +698,7 @@ fn test_sponsored_transaction_message() {
     );
 
     assert_eq!(transaction.sender_address(), sender,);
-    assert_eq!(transaction.gas_payment_object_ref(), &gas_obj_ref);
+    assert_eq!(transaction.gas(), &[gas_obj_ref]);
 
     // Sig order does not matter
     let transaction = Transaction::from_generic_sig_data(
@@ -734,9 +734,9 @@ fn test_sponsored_transaction_message() {
     ));
 
     // Test incomplete signature lists (more sigs than expected)
-    let thrid_party_kp = SuiKeyPair::Ed25519(get_key_pair().1);
+    let third_party_kp = SuiKeyPair::Ed25519(get_key_pair().1);
     let third_party_sig: GenericSignature =
-        signature_from_signer(tx_data.clone(), intent.clone(), &thrid_party_kp).into();
+        signature_from_signer(tx_data.clone(), intent.clone(), &third_party_kp).into();
     assert!(matches!(
         Transaction::from_generic_sig_data(
             tx_data.clone(),
@@ -757,7 +757,7 @@ fn test_sponsored_transaction_message() {
     ));
 
     let tx = transaction.data().transaction_data();
-    assert_eq!(tx.gas(), gas_obj_ref,);
+    assert_eq!(tx.gas(), &[gas_obj_ref],);
     assert_eq!(tx.gas_data(), &gas_data,);
     assert_eq!(tx.sender(), sender,);
     assert_eq!(tx.gas_owner(), sponsor,);
@@ -770,10 +770,10 @@ fn test_sponsored_transaction_validity_check() {
     let sponsor_kp = SuiKeyPair::Ed25519(get_key_pair().1);
     let sponsor = (&sponsor_kp.public()).into();
 
-    // This is a sponsored transation
+    // This is a sponsored transaction
     assert_ne!(sender, sponsor);
     let gas_data = GasData {
-        payment: random_object_ref(),
+        payment: vec![random_object_ref()],
         owner: sponsor,
         price: DUMMY_GAS_PRICE,
         budget: 10000,
@@ -847,7 +847,7 @@ fn test_sponsored_transaction_validity_check() {
     assert_eq!(
         TransactionData::new_with_gas_data(
             TransactionKind::Single(SingleTransactionKind::PaySui(PaySui {
-                coins: vec![(gas_data.payment)],
+                coins: gas_data.payment.clone(),
                 recipients: vec![],
                 amounts: vec![],
             })),
@@ -863,7 +863,7 @@ fn test_sponsored_transaction_validity_check() {
     assert_eq!(
         TransactionData::new_with_gas_data(
             TransactionKind::Single(SingleTransactionKind::PayAllSui(PayAllSui {
-                coins: vec![(gas_data.payment)],
+                coins: gas_data.payment.clone(),
                 recipient: SuiAddress::random_for_testing_only(),
             })),
             sender,

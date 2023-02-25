@@ -232,7 +232,7 @@ export type TransactionKind =
  * The GasData to be used in the transaction.
  */
 export type GasData = {
-  payment: SuiObjectRef;
+  payment: SuiObjectRef[];
   owner: string; // Gas Object's owner
   price: number;
   budget: number;
@@ -377,13 +377,13 @@ const BCS_SPEC: TypeSchema = {
       arguments: [VECTOR, 'CallArg'],
     },
     TransactionData: {
-      kind: 'TransactionKind',
+      kind: 'vector<TransactionKind>',
       sender: BCS.ADDRESS,
       gasData: 'GasData',
       expiration: 'TransactionExpiration',
     },
     GasData: {
-      payment: 'SuiObjectRef',
+      payment: [VECTOR, 'SuiObjectRef'],
       owner: BCS.ADDRESS,
       price: BCS.U64,
       budget: BCS.U64,

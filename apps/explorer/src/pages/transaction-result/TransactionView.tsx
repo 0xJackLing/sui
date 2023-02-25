@@ -546,7 +546,7 @@ function TransactionView({
                                 <DescriptionItem title="Gas Payment">
                                     <ObjectLink
                                         noTruncate
-                                        objectId={gasPayment.objectId}
+                                        objectId={gasPayment[0].objectId}
                                     />
                                 </DescriptionItem>
 
