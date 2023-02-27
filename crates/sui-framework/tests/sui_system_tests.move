@@ -96,7 +96,7 @@ module sui::sui_system_tests {
         let new_validator_addr = @0x1a4623343cd42be47d67314fce0ad042f3c82685544bc91d8c11d24e74ba7357;
         test_scenario::next_tx(scenario, new_validator_addr);
         // This is generated using https://github.com/MystenLabs/sui/blob/375dfb8c56bb422aca8f1592da09a246999bdf4c/crates/sui-types/src/unit_tests/crypto_tests.rs#L38
-        let pop = x"8080980b89554e7f03b625ba4104d05d19b523a737e2d09a69d4498a1bcac154fcb29f6334b7e8b99b8f3aa95153232d";
+        let pop = x"aaac77de3581d3d3df0965175435e00e3ade225333e83806aa66f9c6ccffc00a95b4698b02114013aa4552565cdcef25";
         
         // Add a validator
         add_validator(new_validator_addr, 100, pop, scenario);

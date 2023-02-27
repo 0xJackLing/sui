@@ -65,7 +65,16 @@ fn test_proof_of_possession() {
     println!("Address: {:?}", address);
     println!("Pubkey: {:?}", Hex::encode(kp.public().as_bytes()));
     println!("Proof of possession: {:?}", Hex::encode(&pop));
-    assert!(kp.public().verify(&msg, &pop).is_ok());
+    assert!(pop
+        .verify_secure(
+            &IntentMessage::new(
+                Intent::default().with_scope(IntentScope::ProofOfPossession),
+                msg
+            ),
+            0,
+            kp.public().into()
+        )
+        .is_ok());
 }
 
 proptest! {
