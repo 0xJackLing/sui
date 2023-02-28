@@ -12,8 +12,6 @@ export function useCheckpointsTable(epoch?: number) {
         ['checkpoints', epoch],
         async () => {
             const checkpoints = await getCheckpoints();
-            console.log(checkpoints);
-
             return {
                 data: checkpoints.map((checkpoint) => ({
                     time: (
