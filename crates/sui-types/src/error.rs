@@ -412,6 +412,15 @@ pub enum SuiError {
     #[error("Failed to get the system state object content")]
     SuiSystemStateNotFound,
 
+    #[error("Message version is not supported at the current protocol version")]
+    WrongMessageVersion {
+        message_version: u64,
+        // the range in which the given message version is supported
+        supported: SupportedProtocolVersions,
+        // the current protocol version which is outside of that range
+        current_protocol_version: ProtocolVersion,
+    },
+
     #[error("unknown error: {0}")]
     Unknown(String),
 }
