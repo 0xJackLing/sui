@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CopyNew24 } from '@mysten/icons';
+import { CopyNew24, Flag16 } from '@mysten/icons';
 import { type TransactionKindName } from '@mysten/sui.js';
 import toast from 'react-hot-toast';
 
@@ -18,6 +18,7 @@ import { ReactComponent as TransferSuiIcon } from './icons/transactions/transfer
 
 export type PageHeaderType =
     | TransactionKindName
+    | 'Checkpoint'
     | 'Address'
     | 'Object'
     | 'Package';
@@ -32,6 +33,7 @@ export interface PageHeaderProps {
 const TYPE_TO_ICON: Record<string, typeof CallIcon> = {
     Call: CallIcon,
     ChangeEpoch: ChangeEpochIcon,
+    Checkpoint: Flag16,
     Pay: PayIcon,
     // TODO: replace with SUI specific icon if needed
     PaySui: PayIcon,
@@ -89,8 +91,6 @@ export function PageHeader({ title, subtitle, type, status }: PageHeaderProps) {
                     >
                         <span className="sr-only">Copy</span>
                         <CopyNew24 aria-hidden="true" />
-                        {/* <Copy12 aria-hidden="true" /> */}
-                        {/* <CopyIcon aria-hidden="true" /> */}
                     </button>
                 </div>
 
