@@ -9,6 +9,7 @@ import {
   array,
   optional,
   define,
+  any,
 } from 'superstruct';
 import { Provider } from '../providers/provider';
 import {
@@ -80,6 +81,8 @@ const StringEncodedBigint = define<string>('StringEncodedBigint', (val) => {
 const GasConfig = object({
   gasBudget: optional(StringEncodedBigint),
   gasPrice: optional(StringEncodedBigint),
+  // TODO: Define types for gas payment:
+  gasPayment: optional(any()),
   // TODO: Do we actually need these?
   // gasPayment?: ObjectId;
   // gasOwner?: SuiAddress;
@@ -97,16 +100,26 @@ const SerializedTransactionBuilder = object({
 });
 type SerializedTransactionBuilder = Infer<typeof SerializedTransactionBuilder>;
 
-// TODO: Support gas configuration.
+/**
+ * Transaction Builder
+ * @experimental
+ */
 export class Transaction<Inputs extends string = never> {
+  /** Returns `true` if the object is an instance of the Transaction builder class. */
   static is(obj: unknown): obj is Transaction {
     return obj instanceof Transaction;
   }
 
-  // TODO: Support fromBytes.
+  /**
+   * Converts from a serialized transaction format to a `Transaction` class.
+   * There are two supported serialized formats:
+   * - A string returned from `Transaction#serialize`. The serialized format must be compatible, or it will throw an error.
+   * - A byte array (or base64-encoded bytes) containing BCS transaction data.
+   */
   static from(serialized: string | Uint8Array) {
     // Check for bytes:
     if (typeof serialized !== 'string' || !serialized.startsWith('{')) {
+      // TODO: Support fromBytes.
       throw new Error('from() does not yet support bytes');
     }
 
@@ -124,9 +137,7 @@ export class Transaction<Inputs extends string = never> {
     return Commands;
   }
 
-  /**
-   * The gas configuration for the transaction.
-   */
+  /** The gas configuration for the transaction. */
   #gasConfig: Infer<typeof GasConfig>;
   /**
    * The list of inputs currently assigned to this transaction.
@@ -155,6 +166,10 @@ export class Transaction<Inputs extends string = never> {
     this.#gasConfig.gasBudget = String(budget);
   }
 
+  setGasPayment(payment: unknown) {
+    this.#gasConfig.gasPayment = payment;
+  }
+
   // Dynamically create a new input, which is separate from the `input`. This is important
   // for generated clients to be able to define unique inputs that are non-overlapping with the
   // defined inputs.
@@ -165,7 +180,10 @@ export class Transaction<Inputs extends string = never> {
     return input;
   }
 
-  // Get an input by the name used in the constructor:
+  /**
+   * Returns an input reference, based on the name configured in the `Transaction` constructor.
+   * This input can be used as an argument in commands.
+   */
   input(inputName: Inputs): TransactionInput {
     if (!inputName) {
       throw new Error('Invalid input name');
@@ -180,22 +198,20 @@ export class Transaction<Inputs extends string = never> {
     return input;
   }
 
-  // TODO: Does this belong in the transaction? It's not actually stateful (right now),
-  // and I'm not convinced that it ever will be stateful.
+  // TODO: Make this a getter?
+  /** Returns an argument for the gas coin, to be used in a transaction. */
   gas(): TransactionArgument {
     return { kind: 'GasCoin' };
   }
 
-  // TODO: This could also look at the command arguments and add
-  // any referenced commands that are not present in this transaction.
+  /** Add a command to the transaction. */
   add(command: TransactionCommand) {
+    // TODO: This should also look at the command arguments and add any referenced commands that are not present in this transaction.
     const index = this.#commands.push(command);
     return createTransactionResult(index - 1);
   }
 
-  /**
-   * Define the input values for the named inputs in the transaction.
-   */
+  /** Define the input values for the named inputs in the transaction. */
   provideInputs(inputs: Partial<Record<Inputs, unknown>>) {
     this.#inputs.forEach((input) => {
       if (!input.name) return;
@@ -206,6 +222,7 @@ export class Transaction<Inputs extends string = never> {
     });
   }
 
+  /** Build the transaction to BCS bytes. */
   async build({ provider }: { provider: Provider }): Promise<Uint8Array> {
     if (!this.#gasConfig.gasPrice) {
       this.#gasConfig.gasPrice = String(await provider.getReferenceGasPrice());
@@ -214,23 +231,19 @@ export class Transaction<Inputs extends string = never> {
     throw new Error('Not implemented');
   }
 
+  /**
+   * Serialize the transaction to a string so that it can be sent to a separate context.
+   * This is different from `build` in that it does not serialize to BCS bytes, and instead
+   * uses a separate format that is unique to the transaction builder. This allows
+   * us to serialize partially-complete transactions, that can then be completed and
+   * built in a separate context.
+   *
+   * For example, a dapp can construct a transaction, but not provide gas objects
+   * or a gas budget. The transaction then can be sent to the wallet, where this
+   * information is automatically filled in (e.g. by querying for coin objects
+   * and performing a dry run).
+   */
   serialize() {
-    // TODO: Do input values need to be provided before we serialize?
-    // The wallet can fill out things like gas coin, but should we expect it to
-    // also know how to fill in other types?
-    // It might make sense for some things though, like other non-SUI coin types.
-    // I need to ask around and see what the intuition is here, specifically:
-    // - Do we expect expect the wallet to be able to fill out non-SUI coin inputs.
-    //
-    // If we do though, that's probably _fairly_ simple to do, using similar mechanisms
-    // to the Sui coin. Basically, don't put it as a named input (because those are user-provided),
-    // and have some special internal representation for places we use coins in commands.
-    // Then, when we construct the transaction, we just need to walk through the commands
-    // and determine all of the coin objects that we need (annoying but possible).
-    // We could also keep track of this in internal state to avoid the traversal,
-    // but the added benefit of the traversal is that if we update the logic, there's
-    // less likelihood of state sync issues due to incompatible serializations of the
-    // transaction.
     const allInputsProvided = this.#inputs.every((input) => !!input.value);
 
     if (!allInputsProvided) {
