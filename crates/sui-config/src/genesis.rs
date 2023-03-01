@@ -31,7 +31,7 @@ use sui_types::in_memory_storage::InMemoryStorage;
 use sui_types::intent::{Intent, IntentMessage, IntentScope};
 use sui_types::message_envelope::Message;
 use sui_types::messages::{CallArg, TransactionEffects};
-use sui_types::messages::{CertifiedTransaction, Transaction};
+use sui_types::messages::{CertifiedTransaction, Transaction, TransactionDataAPI};
 use sui_types::messages::{InputObjects, SignedTransaction};
 use sui_types::messages_checkpoint::{
     CertifiedCheckpointSummary, CheckpointContents, CheckpointSummary, VerifiedCheckpoint,
@@ -792,7 +792,7 @@ fn create_genesis_transaction(
             >(
                 vec![],
                 temporary_store,
-                transaction_data.kind,
+                transaction_data.into_kind(),
                 signer,
                 gas,
                 *genesis_transaction.digest(),

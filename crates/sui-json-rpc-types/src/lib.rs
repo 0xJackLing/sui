@@ -1939,17 +1939,17 @@ impl SuiTransactionEffects {
         resolver: &impl GetModule,
     ) -> Result<Self, anyhow::Error> {
         Ok(Self {
-            status: *effect.status().into(),
+            status: effect.status().clone().into(),
             executed_epoch: effect.executed_epoch(),
-            gas_used: *effect.gas_cost_summary().into(),
+            gas_used: effect.gas_cost_summary().clone().into(),
             shared_objects: to_sui_object_ref(effect.shared_objects().to_vec()),
             transaction_digest: *effect.transaction_digest(),
-            created: to_owned_ref(effect.created()),
-            mutated: to_owned_ref(effect.mutated()),
-            unwrapped: to_owned_ref(effect.unwrapped()),
-            deleted: to_sui_object_ref(effect.deleted()),
-            unwrapped_then_deleted: to_sui_object_ref(effect.unwrapped_then_deleted()),
-            wrapped: to_sui_object_ref(effect.wrapped()),
+            created: to_owned_ref(effect.created().to_vec()),
+            mutated: to_owned_ref(effect.mutated().to_vec()),
+            unwrapped: to_owned_ref(effect.unwrapped().to_vec()),
+            deleted: to_sui_object_ref(effect.deleted().to_vec()),
+            unwrapped_then_deleted: to_sui_object_ref(effect.unwrapped_then_deleted().to_vec()),
+            wrapped: to_sui_object_ref(effect.wrapped().to_vec()),
             gas_object: OwnedObjectRef {
                 owner: effect.gas_object().1,
                 reference: effect.gas_object().0.into(),
@@ -1957,9 +1957,9 @@ impl SuiTransactionEffects {
             events: effect
                 .events()
                 .into_iter()
-                .map(|event| SuiEvent::try_from(event, resolver))
+                .map(|event| SuiEvent::try_from(event.clone(), resolver))
                 .collect::<Result<_, _>>()?,
-            dependencies: effect.dependencies,
+            dependencies: effect.dependencies().to_vec(),
         })
     }
 }

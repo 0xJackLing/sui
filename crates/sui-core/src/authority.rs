@@ -538,7 +538,7 @@ impl AuthorityState {
         }
 
         // Checks to see if the transaction has expired
-        if match &transaction.inner().data().transaction_data().expiration {
+        if match &transaction.inner().data().transaction_data().expiration() {
             TransactionExpiration::None => false,
             TransactionExpiration::Epoch(epoch) => *epoch < epoch_store.epoch(),
         } {
@@ -589,7 +589,7 @@ impl AuthorityState {
         let digest = *transaction.digest();
         debug!("execute_certificate_with_effects");
         fp_ensure!(
-            effects.data().transaction_digest == digest,
+            *effects.data().transaction_digest() == digest,
             SuiError::ErrorWhileProcessingCertificate {
                 err: "effects/tx digest mismatch".to_string()
             }
@@ -833,7 +833,7 @@ impl AuthorityState {
         epoch_store: &Arc<AuthorityPerEpochStore>,
     ) -> SuiResult {
         let input_object_count = inner_temporary_store.objects.len();
-        let shared_object_count = effects.shared_objects.len();
+        let shared_object_count = effects.shared_objects().len();
 
         // If commit_certificate returns an error, tx_guard will be dropped and the certificate
         // will be persisted in the log for later recovery.
@@ -883,7 +883,7 @@ impl AuthorityState {
             .observe(shared_object_count as f64);
         self.metrics
             .batch_size
-            .observe(certificate.data().intent_message.value.kind.batch_size() as f64);
+            .observe(certificate.data().intent_message.value.kind().batch_size() as f64);
 
         Ok(())
     }
@@ -932,7 +932,7 @@ impl AuthorityState {
             execution_engine::execute_transaction_to_effects::<execution_mode::Normal, _>(
                 shared_object_refs,
                 temporary_store,
-                transaction_data.kind,
+                transaction_data.into_kind(),
                 signer,
                 gas,
                 *certificate.digest(),
@@ -994,7 +994,7 @@ impl AuthorityState {
             execution_engine::execute_transaction_to_effects::<execution_mode::Normal, _>(
                 shared_object_refs,
                 temporary_store,
-                transaction.kind,
+                transaction.into_kind(),
                 signer,
                 gas,
                 transaction_digest,
@@ -1018,6 +1018,9 @@ impl AuthorityState {
         if !self.is_fullnode(&epoch_store) {
             return Err(anyhow!("dev-inspect is only supported on fullnodes"));
         }
+
+        transaction_kind.check_version_supported(epoch_store.protocol_version())?;
+
         let gas_price = gas_price.unwrap_or_else(|| epoch_store.reference_gas_price());
 
         let protocol_config = epoch_store.protocol_config();
@@ -1050,7 +1053,7 @@ impl AuthorityState {
             gas_budget,
         );
         let transaction_digest = TransactionDigest::new(sha3_hash(&data));
-        let transaction_kind = data.kind;
+        let transaction_kind = data.into_kind();
         let transaction_dependencies = input_objects.transaction_dependencies();
         let temporary_store = TemporaryStore::new(
             self.database.clone(),
@@ -1347,7 +1350,7 @@ impl AuthorityState {
 
                 self.metrics
                     .post_processing_total_events_emitted
-                    .inc_by(effects.events.len() as u64);
+                    .inc_by(effects.events().len() as u64);
             }
         };
 

@@ -15,7 +15,7 @@ use sui_types::filter::EventFilter;
 use sui_types::{
     error::{SuiError, SuiResult},
     event::{Event, EventEnvelope},
-    messages::TransactionEffects,
+    messages::{TransactionEffects, TransactionEffectsAPI},
 };
 
 use crate::authority::{AuthorityStore, ResolverWrapper};
@@ -55,7 +55,7 @@ impl EventHandler {
         });
     }
 
-    #[instrument(level = "debug", skip_all, fields(seq=?seq_num, tx_digest=?effects.transaction_digest), err)]
+    #[instrument(level = "debug", skip_all, fields(seq=?seq_num, tx_digest=?effects.transaction_digest()), err)]
     pub async fn process_events(
         &self,
         effects: &TransactionEffects,
@@ -64,13 +64,13 @@ impl EventHandler {
         module_cache: &SyncModuleCache<ResolverWrapper<AuthorityStore>>,
     ) -> SuiResult {
         let res: Result<Vec<_>, _> = effects
-            .events
+            .events()
             .iter()
             .enumerate()
             .map(|(event_num, e)| {
                 self.create_envelope(
                     e,
-                    effects.transaction_digest,
+                    *effects.transaction_digest(),
                     event_num.try_into().unwrap(),
                     seq_num,
                     timestamp_ms,
@@ -87,14 +87,14 @@ impl EventHandler {
             warn!(
                 num_events = envelopes.len(),
                 row_inserted = row_inserted,
-                tx_digest =? effects.transaction_digest,
+                tx_digest =? effects.transaction_digest(),
                 "Inserted event record is less than expected."
             );
         }
 
         trace!(
             num_events = envelopes.len(),
-            tx_digest =? effects.transaction_digest,
+            tx_digest =? effects.transaction_digest(),
             "Finished writing events to event store"
         );
 
