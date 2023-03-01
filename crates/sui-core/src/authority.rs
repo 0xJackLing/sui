@@ -505,6 +505,8 @@ impl AuthorityState {
     ) -> Result<HandleTransactionResponse, SuiError> {
         let epoch_store = self.load_epoch_store_one_call_per_task();
 
+        transaction.check_version_supported(epoch_store.protocol_version())?;
+
         let tx_digest = *transaction.digest();
         debug!(
             "handle_transaction with transaction data: {:?}",

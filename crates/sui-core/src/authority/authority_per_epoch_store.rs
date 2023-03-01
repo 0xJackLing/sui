@@ -468,6 +468,10 @@ impl AuthorityPerEpochStore {
         &self.committee
     }
 
+    pub fn protocol_version(&self) -> ProtocolVersion {
+        self.committee.protocol_version
+    }
+
     pub fn protocol_config(&self) -> &ProtocolConfig {
         &self.protocol_config
     }

@@ -993,7 +993,33 @@ pub enum TransactionExpiration {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct TransactionData {
+pub enum TransactionData {
+    V1(TransactionDataV1),
+}
+
+impl VersionedProtocolMessage for TransactionData {
+    fn check_version_supported(&self, current_protocol_version: ProtocolVersion) -> SuiResult {
+        let (message_version, supported) = match self {
+            Self::V1 => (1, SupportedProtocolVersions::new_for_message(1, u64::MAX)),
+            // Suppose we add V2 at protocol version 7, then we must change this to:
+            // Self::V1 => (1, SupportedProtocolVersions::new_for_message(1, 6)),
+            // Self::V2 => (1, SupportedProtocolVersions::new_for_message(7, u64::MAX)),
+        };
+
+        if supported.is_version_supported(current_protocol_version) {
+            Ok(())
+        } else {
+            Err(SuiError::WrongMessageVersion {
+                message_version,
+                supported,
+                current_protocol_version,
+            })
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
+pub struct TransactionDataV1 {
     pub kind: TransactionKind,
     pub sender: SuiAddress,
     pub gas_data: GasData,

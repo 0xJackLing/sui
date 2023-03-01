@@ -22,6 +22,7 @@ pub use move_vm_runtime::move_vm::MoveVM;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fmt::Debug};
 use strum_macros::{AsRefStr, IntoStaticStr};
+use sui_protocol_config::{ProtocolVersion, SupportedProtocolVersions};
 use thiserror::Error;
 use tonic::Status;
 use typed_store::rocks::TypedStoreError;
