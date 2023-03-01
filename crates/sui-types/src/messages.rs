@@ -2719,13 +2719,20 @@ impl TransactionEffects {
         })
     }
 
-    pub fn new_for_testing(tx: &Transaction) -> TransactionEffects {
-        TransactionEffects::V1(TransactionEffectsV1 {
-            transaction_digest: *tx.digest(),
-            gas_object: (
+    pub fn new_with_tx(tx: &Transaction) -> TransactionEffects {
+        Self::new_with_tx_and_gas(
+            tx,
+            (
                 random_object_ref(),
                 Owner::AddressOwner(tx.data().intent_message.value.sender()),
             ),
+        )
+    }
+
+    pub fn new_with_tx_and_gas(tx: &Transaction, gas_object: (ObjectRef, Owner)) -> Self {
+        TransactionEffects::V1(TransactionEffectsV1 {
+            transaction_digest: *tx.digest(),
+            gas_object,
             ..Default::default()
         })
     }

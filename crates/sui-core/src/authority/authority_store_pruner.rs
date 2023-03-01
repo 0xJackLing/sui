@@ -385,9 +385,11 @@ mod tests {
         let to_keep = {
             let db = Arc::new(AuthorityPerpetualTables::open(&path, None));
             let (to_keep, to_delete) = generate_test_data(db.clone(), 3, 2, 1000).unwrap();
-            let effects = TransactionEffects {
-                modified_at_versions: to_delete.into_iter().map(|o| (o.0, o.1)).collect(),
-                ..Default::default()
+            let mut effects = TransactionEffects::default();
+            match &mut effects {
+                TransactionEffects::V1(fx) => {
+                    fx.modified_at_versions = to_delete.into_iter().map(|o| (o.0, o.1)).collect()
+                }
             };
             let pruned =
                 AuthorityStorePruner::handle_checkpoint(vec![effects], &db.objects).unwrap();

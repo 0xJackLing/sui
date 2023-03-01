@@ -123,7 +123,7 @@ pub fn create_fake_cert_and_effect_digest<'a>(
 }
 
 pub fn dummy_transaction_effects(tx: &Transaction) -> TransactionEffects {
-    TransactionEffects::new_for_testing(tx)
+    TransactionEffects::new_with_tx(tx)
 }
 
 pub fn compile_basics_package() -> CompiledPackage {

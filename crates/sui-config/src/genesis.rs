@@ -1141,7 +1141,7 @@ mod test {
             >(
                 vec![],
                 temporary_store,
-                transaction_data.kind,
+                transaction_data.into_kind(),
                 signer,
                 gas,
                 *genesis_transaction.digest(),

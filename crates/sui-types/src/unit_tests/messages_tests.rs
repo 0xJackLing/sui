@@ -496,11 +496,10 @@ fn test_digest_caching() {
     // cached digest was not serialized/deserialized
     assert_ne!(initial_digest, *deserialized_tx.digest());
 
-    let effects = TransactionEffects {
-        transaction_digest: initial_digest,
-        gas_object: (random_object_ref(), Owner::AddressOwner(a1)),
-        ..Default::default()
-    };
+    let effects = TransactionEffects::new_with_tx_and_gas(
+        initial_digest,
+        (random_object_ref(), Owner::AddressOwner(a1)),
+    );
 
     let mut signed_effects = SignedTransactionEffects::new(
         committee.epoch(),

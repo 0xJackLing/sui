@@ -1956,7 +1956,7 @@ impl SuiTransactionEffects {
             },
             events: effect
                 .events()
-                .into_iter()
+                .iter()
                 .map(|event| SuiEvent::try_from(event.clone(), resolver))
                 .collect::<Result<_, _>>()?,
             dependencies: effect.dependencies().to_vec(),

@@ -10,6 +10,7 @@ use sui_types::base_types::{ObjectID, ObjectRef, SequenceNumber};
 use sui_types::error::SuiResult;
 use sui_types::messages::{
     CallArg, ExecutionFailureStatus, ExecutionStatus, ObjectArg, TransactionEffects,
+    TransactionEffectsAPI,
 };
 use sui_types::object::{generate_test_gas_objects, Object, Owner, OBJECT_START_VERSION};
 use sui_types::SUI_FRAMEWORK_ADDRESS;
@@ -180,9 +181,9 @@ impl TestEnvironment {
 
     async fn create_counter(&mut self) -> (ObjectRef, Owner) {
         let fx = self.owned_move_call("create_counter", vec![]).await;
-        assert!(fx.status.is_ok());
+        assert!(fx.status().is_ok());
 
-        *fx.created
+        *fx.created()
             .iter()
             .find(|(_, owner)| matches!(owner, Owner::AddressOwner(_)))
             .expect("Owned object created")
@@ -190,9 +191,9 @@ impl TestEnvironment {
 
     async fn create_shared_counter(&mut self) -> (ObjectRef, Owner) {
         let fx = self.owned_move_call("create_shared_counter", vec![]).await;
-        assert!(fx.status.is_ok());
+        assert!(fx.status().is_ok());
 
-        *fx.created
+        *fx.created()
             .iter()
             .find(|(_, owner)| owner.is_shared())
             .expect("Shared object created")
@@ -209,12 +210,12 @@ impl TestEnvironment {
             )
             .await;
 
-        if let ExecutionStatus::Failure { error, .. } = fx.status {
-            return Err(error);
+        if let ExecutionStatus::Failure { error, .. } = fx.status() {
+            return Err(error.clone());
         }
 
         Ok(*fx
-            .mutated
+            .mutated()
             .iter()
             .find(|(obj, _)| obj.0 == counter.0)
             .expect("Counter mutated"))
@@ -228,9 +229,9 @@ impl TestEnvironment {
             )
             .await;
 
-        assert!(fx.status.is_ok());
+        assert!(fx.status().is_ok());
 
-        *fx.mutated
+        *fx.mutated()
             .iter()
             .find(|(obj, _)| obj.0 == counter.0)
             .expect("Counter modified")
@@ -252,10 +253,10 @@ impl TestEnvironment {
             )
             .await?;
 
-        assert!(fx.status.is_ok());
+        assert!(fx.status().is_ok());
 
         Ok(*fx
-            .mutated
+            .mutated()
             .iter()
             .find(|(obj, _)| obj.0 == counter)
             .expect("Counter modified"))
