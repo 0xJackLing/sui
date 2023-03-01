@@ -21,6 +21,7 @@ use sui_types::coin::{Coin, CoinMetadata, LockedCoin, TreasuryCap};
 use sui_types::error::SuiError;
 use sui_types::event::Event;
 use sui_types::gas_coin::GAS;
+use sui_types::messages::TransactionEffectsAPI;
 use sui_types::object::Object;
 use sui_types::parse_sui_struct_tag;
 
@@ -129,8 +130,8 @@ impl CoinReadApi {
             .await?;
 
         let object_id = effects
-            .events
-            .into_iter()
+            .events()
+            .iter()
             .find_map(|e| {
                 if let Event::NewObject { object_type, .. } = &e {
                     if matches!(parse_sui_struct_tag(object_type), Ok(tag) if tag == object_struct_tag) {
