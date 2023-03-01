@@ -462,10 +462,9 @@ impl ValidatorProxy for LocalValidatorAggregatorProxy {
     async fn get_validators(&self) -> Result<Vec<SuiAddress>, anyhow::Error> {
         let system_state = self.get_latest_system_state_object().await?;
         Ok(system_state
-            .validators
-            .active_validators
+            .get_validator_metadata_vec()
             .into_iter()
-            .map(|v| v.metadata.sui_address)
+            .map(|metadata| metadata.sui_address)
             .collect())
     }
 }
@@ -508,7 +507,9 @@ impl ValidatorProxy for FullNodeProxy {
     }
 
     async fn get_latest_system_state_object(&self) -> Result<SuiSystemState, anyhow::Error> {
-        Ok(self.sui_client.read_api().get_sui_system_state().await?)
+        Ok(SuiSystemState::V1(
+            self.sui_client.read_api().get_sui_system_state().await?,
+        ))
     }
 
     async fn execute_transaction(&self, tx: Transaction) -> anyhow::Result<ExecutionEffects> {

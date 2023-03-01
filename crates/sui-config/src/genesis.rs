@@ -39,7 +39,8 @@ use sui_types::messages_checkpoint::{
 };
 use sui_types::object::Owner;
 use sui_types::sui_system_state::{
-    get_sui_system_state, get_sui_system_state_wrapper, SuiSystemState, SuiSystemStateWrapper,
+    get_sui_system_state, get_sui_system_state_wrapper, SuiSystemStateInnerV1,
+    SuiSystemStateWrapper,
 };
 use sui_types::temporary_store::{InnerTemporaryStore, TemporaryStore};
 use sui_types::MOVE_STDLIB_ADDRESS;
@@ -163,8 +164,10 @@ impl Genesis {
             .expect("Sui System State Wrapper object must always exist")
     }
 
-    pub fn sui_system_object(&self) -> SuiSystemState {
-        get_sui_system_state(self.objects()).expect("Sui System State object must always exist")
+    pub fn sui_system_object(&self) -> SuiSystemStateInnerV1 {
+        get_sui_system_state(self.objects())
+            .expect("Sui System State object must always exist")
+            .into_genesis_version()
     }
 
     pub fn clock(&self) -> Clock {
@@ -468,8 +471,9 @@ impl Builder {
     }
 
     fn committee(objects: &[Object]) -> Committee {
-        let sui_system_object =
-            get_sui_system_state(objects).expect("Sui System State object must always exist");
+        let sui_system_object = get_sui_system_state(objects)
+            .expect("Sui System State object must always exist")
+            .into_genesis_version();
         sui_system_object.get_current_epoch_committee().committee
     }
 

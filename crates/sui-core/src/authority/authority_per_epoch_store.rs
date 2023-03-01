@@ -499,7 +499,7 @@ impl AuthorityPerEpochStore {
     }
 
     pub fn reference_gas_price(&self) -> u64 {
-        self.system_state_object().reference_gas_price
+        self.system_state_object().reference_gas_price()
     }
 
     pub fn module_cache(&self) -> &Arc<SyncModuleCache<ResolverWrapper<AuthorityStore>>> {
@@ -1990,11 +1990,11 @@ impl EpochStartConfiguration {
     }
 
     pub fn epoch_id(&self) -> EpochId {
-        self.system_state.epoch
+        self.system_state.epoch()
     }
 
     pub fn epoch_start_timestamp_ms(&self) -> CheckpointTimestamp {
-        self.system_state.epoch_start_timestamp_ms
+        self.system_state.epoch_start_timestamp_ms()
     }
 
     pub fn epoch_digest(&self) -> CheckpointDigest {

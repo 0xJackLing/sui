@@ -1479,7 +1479,7 @@
       "description": "Return [SuiSystemState]",
       "params": [],
       "result": {
-        "name": "SuiSystemState",
+        "name": "SuiSystemStateInnerV1",
         "required": true,
         "schema": {
           "$ref": "#/components/schemas/SuiSystemState"

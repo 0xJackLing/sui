@@ -11,7 +11,7 @@ use sui_open_rpc::Module;
 use sui_types::base_types::{EpochId, SuiAddress};
 use sui_types::governance::DelegatedStake;
 use sui_types::messages::CommitteeInfoResponse;
-use sui_types::sui_system_state::{SuiSystemState, ValidatorMetadata};
+use sui_types::sui_system_state::{SuiSystemStateInnerV1, ValidatorMetadata};
 
 pub(crate) struct GovernanceReadApi {
     fullnode: HttpClient,
@@ -39,7 +39,7 @@ impl GovernanceReadApiServer for GovernanceReadApi {
         self.fullnode.get_committee_info(epoch).await
     }
 
-    async fn get_sui_system_state(&self) -> RpcResult<SuiSystemState> {
+    async fn get_sui_system_state(&self) -> RpcResult<SuiSystemStateInnerV1> {
         self.fullnode.get_sui_system_state().await
     }
 

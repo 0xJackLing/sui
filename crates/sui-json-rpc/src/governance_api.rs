@@ -16,7 +16,7 @@ use sui_types::base_types::SuiAddress;
 use sui_types::committee::EpochId;
 use sui_types::governance::{DelegatedStake, Delegation, DelegationStatus, StakedSui};
 use sui_types::messages::{CommitteeInfoRequest, CommitteeInfoResponse};
-use sui_types::sui_system_state::{SuiSystemState, ValidatorMetadata};
+use sui_types::sui_system_state::{SuiSystemStateInnerV1, ValidatorMetadata};
 
 pub struct GovernanceReadApi {
     state: Arc<AuthorityState>,
@@ -73,11 +73,7 @@ impl GovernanceReadApiServer for GovernanceReadApi {
         Ok(self
             .get_sui_system_state()
             .await?
-            .validators
-            .active_validators
-            .into_iter()
-            .map(|v| v.metadata)
-            .collect())
+            .get_validator_metadata_vec())
     }
 
     async fn get_committee_info(&self, epoch: Option<EpochId>) -> RpcResult<CommitteeInfoResponse> {
@@ -87,12 +83,13 @@ impl GovernanceReadApiServer for GovernanceReadApi {
             .map_err(Error::from)?)
     }
 
-    async fn get_sui_system_state(&self) -> RpcResult<SuiSystemState> {
+    async fn get_sui_system_state(&self) -> RpcResult<SuiSystemStateInnerV1> {
         Ok(self
             .state
             .database
             .get_sui_system_state_object()
-            .map_err(Error::from)?)
+            .map_err(Error::from)?
+            .into_latest_version())
     }
 
     async fn get_reference_gas_price(&self) -> RpcResult<u64> {

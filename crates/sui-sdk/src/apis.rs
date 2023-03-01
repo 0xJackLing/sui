@@ -30,7 +30,7 @@ use sui_types::messages::{
 };
 use sui_types::messages_checkpoint::{CheckpointSequenceNumber, CheckpointSummary};
 use sui_types::query::{EventQuery, TransactionQuery};
-use sui_types::sui_system_state::{SuiSystemState, ValidatorMetadata};
+use sui_types::sui_system_state::{SuiSystemStateInnerV1, ValidatorMetadata};
 
 use futures::StreamExt;
 use sui_json_rpc::api::{CoinReadApiClient, EventReadApiClient, ReadApiClient, WriteApiClient};
@@ -191,7 +191,7 @@ impl ReadApi {
             .await?)
     }
 
-    pub async fn get_sui_system_state(&self) -> SuiRpcResult<SuiSystemState> {
+    pub async fn get_sui_system_state(&self) -> SuiRpcResult<SuiSystemStateInnerV1> {
         Ok(self.api.http.get_sui_system_state().await?)
     }
 
@@ -499,7 +499,7 @@ impl GovernanceApi {
     }
 
     /// Return [SuiSystemState]
-    pub async fn get_sui_system_state(&self) -> SuiRpcResult<SuiSystemState> {
+    pub async fn get_sui_system_state(&self) -> SuiRpcResult<SuiSystemStateInnerV1> {
         Ok(self.api.http.get_sui_system_state().await?)
     }
 }
