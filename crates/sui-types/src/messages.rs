@@ -1298,6 +1298,10 @@ impl TransactionData {
 pub trait TransactionDataAPI {
     fn sender(&self) -> SuiAddress;
 
+    // Note: this implies that TransactionKind itself must be versioned, so that it can be
+    // shared across versions. This will be easy to do since it is already an enum.
+    fn kind(&self) -> &TransactionKind;
+
     /// Transaction signer and Gas owner
     fn signers(&self) -> Vec<SuiAddress>;
 
@@ -1332,6 +1336,10 @@ pub trait TransactionDataAPI {
 impl TransactionDataAPI for TransactionDataV1 {
     fn sender(&self) -> SuiAddress {
         self.sender
+    }
+
+    fn kind(&self) -> &TransactionKind {
+        &self.kind
     }
 
     /// Transaction signer and Gas owner
@@ -2982,7 +2990,7 @@ impl Display for CertifiedTransaction {
             "Signed Authorities Bitmap : {:?}",
             self.auth_sig().signers_map
         )?;
-        write!(writer, "{}", &self.data().intent_message.value.kind)?;
+        write!(writer, "{}", &self.data().intent_message.value.kind())?;
         write!(f, "{}", writer)
     }
 }

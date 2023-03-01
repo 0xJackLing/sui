@@ -555,6 +555,7 @@ impl<S> TemporaryStore<S> {
             modified_at_versions.push((*id, *version));
         });
 
+        let protocol_version = self.protocol_version;
         let (inner, events) = self.into_inner();
 
         // In the case of special transactions that don't require a gas object,
@@ -597,7 +598,7 @@ impl<S> TemporaryStore<S> {
         }
 
         let effects = TransactionEffects::new_from_execution(
-            self.protocol_version,
+            protocol_version,
             status,
             epoch,
             gas_cost_summary,

@@ -6,7 +6,10 @@ use crate::committee::{Committee, EpochId};
 use crate::digests::{CheckpointContentsDigest, CheckpointDigest, TransactionEffectsDigest};
 use crate::error::SuiError;
 use crate::message_envelope::Message;
-use crate::messages::InputObjectKind::{ImmOrOwnedMoveObject, MovePackage, SharedMoveObject};
+use crate::messages::{
+    InputObjectKind::{ImmOrOwnedMoveObject, MovePackage, SharedMoveObject},
+    TransactionDataAPI,
+};
 use crate::messages::{SenderSignedData, TransactionEffects, VerifiedTransaction};
 use crate::messages_checkpoint::{
     CheckpointContents, CheckpointSequenceNumber, VerifiedCheckpoint,
