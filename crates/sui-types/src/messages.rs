@@ -2646,6 +2646,18 @@ impl TransactionEffects {
 
 #[enum_dispatch]
 pub trait TransactionEffectsAPI {
+    fn status(&self) -> &ExecutionStatus;
+    fn executed_epoch(&self) -> EpochId;
+    fn created(&self) -> &[(ObjectRef, Owner)];
+    fn mutated(&self) -> &[(ObjectRef, Owner)];
+    fn unwrapped(&self) -> &[(ObjectRef, Owner)];
+    fn deleted(&self) -> &[ObjectRef];
+    fn unwrapped_then_deleted(&self) -> &[ObjectRef];
+    fn wrapped(&self) -> &[ObjectRef];
+    fn gas_object(&self) -> &(ObjectRef, Owner);
+    fn events(&self) -> &[Event];
+    fn shared_objects(&self) -> &[ObjectRef];
+
     fn all_mutated(&self) -> Vec<(&ObjectRef, &Owner, WriteKind)>;
 
     fn all_deleted(&self) -> Vec<(&ObjectRef, DeleteKind)>;
@@ -2660,6 +2672,43 @@ pub trait TransactionEffectsAPI {
 }
 
 impl TransactionEffectsAPI for TransactionEffectsV1 {
+    fn status(&self) -> &ExecutionStatus {
+        &self.status
+    }
+
+    fn created(&self) -> &[(ObjectRef, Owner)] {
+        &self.created
+    }
+    fn mutated(&self) -> &[(ObjectRef, Owner)] {
+        &self.mutated
+    }
+    fn unwrapped(&self) -> &[(ObjectRef, Owner)] {
+        &self.unwrapped
+    }
+    fn deleted(&self) -> &[ObjectRef] {
+        &self.deleted
+    }
+    fn unwrapped_then_deleted(&self) -> &[ObjectRef] {
+        &self.unwrapped_then_deleted
+    }
+    fn wrapped(&self) -> &[ObjectRef] {
+        &self.wrapped
+    }
+    fn gas_object(&self) -> &(ObjectRef, Owner) {
+        &self.gas_object
+    }
+    fn events(&self) -> &[Event] {
+        &self.events
+    }
+
+    fn executed_epoch(&self) -> EpochId {
+        self.executed_epoch
+    }
+
+    fn shared_objects(&self) -> &[ObjectRef] {
+        &self.shared_objects
+    }
+
     /// Return an iterator that iterates through all mutated objects, including mutated,
     /// created and unwrapped objects. In other words, all objects that still exist
     /// in the object state after this transaction.

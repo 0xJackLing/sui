@@ -47,7 +47,8 @@ use sui_types::gas_coin::GasCoin;
 use sui_types::messages::{
     CallArg, EffectsFinalityInfo, ExecutionStatus, GenesisObject, InputObjectKind,
     MoveModulePublish, ObjectArg, Pay, PayAllSui, PaySui, SenderSignedData, SingleTransactionKind,
-    TransactionData, TransactionEffects, TransactionKind,
+    TransactionData, TransactionDataAPI, TransactionEffects, TransactionEffectsAPI,
+    TransactionKind,
 };
 use sui_types::messages_checkpoint::{
     CheckpointContents, CheckpointDigest, CheckpointSequenceNumber, CheckpointSummary,
@@ -1551,7 +1552,7 @@ impl TryFrom<TransactionData> for SuiTransactionData {
     type Error = anyhow::Error;
 
     fn try_from(data: TransactionData) -> Result<Self, Self::Error> {
-        let transactions = match data.kind.clone() {
+        let transactions = match data.kind().clone() {
             TransactionKind::Single(tx) => {
                 vec![tx.try_into()?]
             }
@@ -1938,23 +1939,23 @@ impl SuiTransactionEffects {
         resolver: &impl GetModule,
     ) -> Result<Self, anyhow::Error> {
         Ok(Self {
-            status: effect.status.into(),
-            executed_epoch: effect.executed_epoch,
-            gas_used: effect.gas_used.into(),
-            shared_objects: to_sui_object_ref(effect.shared_objects),
-            transaction_digest: effect.transaction_digest,
-            created: to_owned_ref(effect.created),
-            mutated: to_owned_ref(effect.mutated),
-            unwrapped: to_owned_ref(effect.unwrapped),
-            deleted: to_sui_object_ref(effect.deleted),
-            unwrapped_then_deleted: to_sui_object_ref(effect.unwrapped_then_deleted),
-            wrapped: to_sui_object_ref(effect.wrapped),
+            status: *effect.status().into(),
+            executed_epoch: effect.executed_epoch(),
+            gas_used: *effect.gas_cost_summary().into(),
+            shared_objects: to_sui_object_ref(effect.shared_objects().to_vec()),
+            transaction_digest: *effect.transaction_digest(),
+            created: to_owned_ref(effect.created()),
+            mutated: to_owned_ref(effect.mutated()),
+            unwrapped: to_owned_ref(effect.unwrapped()),
+            deleted: to_sui_object_ref(effect.deleted()),
+            unwrapped_then_deleted: to_sui_object_ref(effect.unwrapped_then_deleted()),
+            wrapped: to_sui_object_ref(effect.wrapped()),
             gas_object: OwnedObjectRef {
-                owner: effect.gas_object.1,
-                reference: effect.gas_object.0.into(),
+                owner: effect.gas_object().1,
+                reference: effect.gas_object().0.into(),
             },
             events: effect
-                .events
+                .events()
                 .into_iter()
                 .map(|event| SuiEvent::try_from(event, resolver))
                 .collect::<Result<_, _>>()?,
