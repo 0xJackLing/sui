@@ -297,6 +297,8 @@ export function DappTxApprovalPage() {
         }
     }, [txRequest]);
 
+    console.log('TX', txRequest);
+
     return (
         <Loading loading={loadingState}>
             {txRequest && addressForTransaction ? (
