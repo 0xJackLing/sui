@@ -2590,7 +2590,7 @@ dependencies = [
 [[package]]
 name = "fastcrypto"
 version = "0.1.4"
-source = "git+https://github.com/MystenLabs/fastcrypto?rev=9cae043d0821662c075fd054c5c5523dcb20b5fb#9cae043d0821662c075fd054c5c5523dcb20b5fb"
+source = "git+https://github.com/MystenLabs/fastcrypto?rev=f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf#f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -2638,7 +2638,7 @@ dependencies = [
 [[package]]
 name = "fastcrypto-derive"
 version = "0.1.2"
-source = "git+https://github.com/MystenLabs/fastcrypto?rev=9cae043d0821662c075fd054c5c5523dcb20b5fb#9cae043d0821662c075fd054c5c5523dcb20b5fb"
+source = "git+https://github.com/MystenLabs/fastcrypto?rev=f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf#f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2 1.0.51",
@@ -2649,7 +2649,7 @@ dependencies = [
 [[package]]
 name = "fastcrypto-tbls"
 version = "0.1.0"
-source = "git+https://github.com/MystenLabs/fastcrypto?rev=9cae043d0821662c075fd054c5c5523dcb20b5fb#9cae043d0821662c075fd054c5c5523dcb20b5fb"
+source = "git+https://github.com/MystenLabs/fastcrypto?rev=f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf#f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf"
 dependencies = [
  "bincode",
  "digest 0.10.6",
@@ -2665,7 +2665,7 @@ dependencies = [
 [[package]]
 name = "fastcrypto-zkp"
 version = "0.1.0"
-source = "git+https://github.com/MystenLabs/fastcrypto?rev=9cae043d0821662c075fd054c5c5523dcb20b5fb#9cae043d0821662c075fd054c5c5523dcb20b5fb"
+source = "git+https://github.com/MystenLabs/fastcrypto?rev=f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf#f589a2fdb634e8d905adf7d0ce9ec433e51e5bcf"
 dependencies = [
  "ark-bls12-381",
  "ark-ec",
@@ -7456,9 +7456,9 @@ dependencies = [
 
 [[package]]
 name = "schemars"
-version = "0.8.11"
+version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a5fb6c61f29e723026dc8e923d94c694313212abbecbbe5f55a7748eec5b307"
+checksum = "02c613288622e5f0c3fdc5dbd4db1c5fbe752746b1d1a56a0630b78fd00de44f"
 dependencies = [
  "dyn-clone",
  "either",
@@ -7469,9 +7469,9 @@ dependencies = [
 
 [[package]]
 name = "schemars_derive"
-version = "0.8.11"
+version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f188d036977451159430f3b8dc82ec76364a42b7e289c2b18a9a18f4470058e9"
+checksum = "109da1e6b197438deb6db99952990c7f959572794b80ff93707d55a232545e7c"
 dependencies = [
  "proc-macro2 1.0.51",
  "quote 1.0.23",
