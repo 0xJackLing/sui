@@ -1480,7 +1480,6 @@ impl AuthorityState {
         };
         Ok(CommitteeInfoResponse {
             epoch,
-            protocol_version: committee.protocol_version,
             committee_info: committee.voting_rights,
         })
     }
@@ -1525,10 +1524,7 @@ impl AuthorityState {
         genesis_objects: &[Object],
         epoch_duration_ms: u64,
     ) -> Arc<Self> {
-        Self::check_protocol_version(
-            supported_protocol_versions,
-            epoch_store.committee().protocol_version,
-        );
+        Self::check_protocol_version(supported_protocol_versions, epoch_store.protocol_version());
 
         let event_handler = event_store.map(|es| {
             let handler = EventHandler::new(es);
@@ -1780,7 +1776,10 @@ impl AuthorityState {
         new_committee: Committee,
         epoch_start_configuration: EpochStartConfiguration,
     ) -> SuiResult<Arc<AuthorityPerEpochStore>> {
-        Self::check_protocol_version(supported_protocol_versions, new_committee.protocol_version);
+        Self::check_protocol_version(
+            supported_protocol_versions,
+            epoch_start_configuration.protocol_version(),
+        );
 
         self.committee_store.insert_new_committee(&new_committee)?;
         let db = self.db();
@@ -2637,7 +2636,7 @@ impl AuthorityState {
         let committee = epoch_store.committee();
 
         // Determine which protocol version to propose for the following epoch.
-        let current_protocol_version = committee.protocol_version;
+        let current_protocol_version = epoch_store.protocol_version();
         let next_protocol_version = current_protocol_version + 1;
 
         let mut stake_aggregator: StakeAggregator<(), true> =

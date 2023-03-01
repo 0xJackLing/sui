@@ -41,7 +41,7 @@ use sui_network::discovery;
 use sui_network::{state_sync, DEFAULT_CONNECT_TIMEOUT_SEC, DEFAULT_HTTP2_KEEPALIVE_SEC};
 use tracing::debug;
 
-use sui_protocol_config::{ProtocolConfig, SupportedProtocolVersions};
+use sui_protocol_config::{ProtocolConfig, ProtocolVersion, SupportedProtocolVersions};
 
 use sui_storage::{
     event_store::{EventStoreType, SqlEventStore},
@@ -84,7 +84,7 @@ use sui_types::error::{SuiError, SuiResult};
 use sui_types::messages::{AuthorityCapabilities, ConsensusTransaction};
 
 pub struct ValidatorComponents {
-    validator_server_handle: tokio::task::JoinHandle<Result<()>>,
+    validator_server_handle: JoinHandle<Result<()>>,
     narwhal_manager: NarwhalManager,
     narwhal_epoch_data_remover: EpochDataRemover,
     consensus_adapter: Arc<ConsensusAdapter>,
@@ -112,7 +112,8 @@ pub struct SuiNode {
     checkpoint_store: Arc<CheckpointStore>,
     accumulator: Arc<StateAccumulator>,
 
-    end_of_epoch_channel: tokio::sync::broadcast::Sender<Committee>,
+    /// Broadcast channel to send the committee and protocol version for the next epoch.
+    end_of_epoch_channel: broadcast::Sender<(Committee, ProtocolVersion)>,
 
     #[cfg(msim)]
     sim_node: sui_simulator::runtime::NodeHandle,
@@ -258,14 +259,15 @@ impl SuiNode {
                 .unwrap();
         }
 
-        let (end_of_epoch_channel, _receiver) =
-            broadcast::channel::<Committee>(config.end_of_epoch_broadcast_channel_capacity);
+        let (end_of_epoch_channel, receiver) = broadcast::channel::<(Committee, ProtocolVersion)>(
+            config.end_of_epoch_broadcast_channel_capacity,
+        );
 
         let transaction_orchestrator = if is_full_node {
             Some(Arc::new(
                 TransactiondOrchestrator::new_with_network_clients(
                     state.clone(),
-                    end_of_epoch_channel.subscribe(),
+                    receiver,
                     config.db_path(),
                     &prometheus_registry,
                 )
@@ -331,7 +333,7 @@ impl SuiNode {
         Ok(node)
     }
 
-    pub fn subscribe_to_epoch_change(&self) -> tokio::sync::broadcast::Receiver<Committee> {
+    pub fn subscribe_to_epoch_change(&self) -> broadcast::Receiver<(Committee, ProtocolVersion)> {
         self.end_of_epoch_channel.subscribe()
     }
 
@@ -803,7 +805,10 @@ impl SuiNode {
             );
 
             cur_epoch_store.record_epoch_reconfig_start_time_metric();
-            let _ = self.end_of_epoch_channel.send(next_epoch_committee.clone());
+            let _ = self.end_of_epoch_channel.send((
+                next_epoch_committee.clone(),
+                ProtocolVersion::new(system_state.protocol_version),
+            ));
 
             // The following code handles 4 different cases, depending on whether the node
             // was a validator in the previous epoch, and whether the node is a validator

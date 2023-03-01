@@ -357,12 +357,8 @@ fn check_epoch_last_checkpoint(
                 );
                 let next_epoch = cur_epoch + 1;
                 return Some(
-                    Committee::new(
-                        next_epoch,
-                        *next_epoch_protocol_version,
-                        next_epoch_committee.iter().cloned().collect(),
-                    )
-                    .expect("Creating new committee object cannot fail"),
+                    Committee::new(next_epoch, next_epoch_committee.iter().cloned().collect())
+                        .expect("Creating new committee object cannot fail"),
                 );
             }
         }
