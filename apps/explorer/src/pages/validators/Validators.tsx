@@ -27,7 +27,7 @@ const APY_DECIMALS = 3;
 
 const NodeMap = lazy(() => import('../../components/node-map'));
 
-function validatorsTableData(
+export function validatorsTableData(
     validators: Validator[],
     epoch: number,
     validatorsEvents: SuiEventEnvelope[]

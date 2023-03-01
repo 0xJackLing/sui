@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useFeature, useGrowthBook } from '@growthbook/growthbook-react';
+import { useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 
+import { validatorsTableData } from '../validators/Validators';
 import { getMockEpochData } from './mocks';
 import { EpochStats } from './stats/EpochStats';
 import { useCheckpointsTable } from './useCheckpointsTable';
@@ -11,22 +13,41 @@ import { useCheckpointsTable } from './useCheckpointsTable';
 import { StatsWrapper } from '~/components/HomeMetrics';
 import { SuiAmount } from '~/components/transaction-card/TxCardUtils';
 import { useGetCurrentEpochStaticInfo } from '~/hooks/useGetObject';
+import { useGetValidatorsEvents } from '~/hooks/useGetValidatorsEvents';
 import { EpochProgress } from '~/pages/epochs/stats/Progress';
 import { LoadingSpinner } from '~/ui/LoadingSpinner';
 import { TableCard } from '~/ui/TableCard';
-import { Tab, TabGroup, TabList, TabPanels } from '~/ui/Tabs';
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '~/ui/Tabs';
 import { GROWTHBOOK_FEATURES } from '~/utils/growthbook';
 
 function EpochDetail() {
     const enabled = useFeature(GROWTHBOOK_FEATURES.EPOCHS_CHECKPOINTS).on;
     const { data: epochData, isLoading } = useGetCurrentEpochStaticInfo();
+    const numberOfValidators = useMemo(
+        () => epochData?.validators.active_validators.length || null,
+        [epochData]
+    );
     const { data: checkpointsTable } = useCheckpointsTable(epochData?.epoch);
+    const {
+        data: validatorEvents,
+        isLoading: validatorsEventsLoading,
+        isError: validatorEventError,
+    } = useGetValidatorsEvents({
+        limit: epochData?.validators.active_validators.length ?? 0,
+        order: 'descending',
+    });
 
+    // console.log(validatorsTable);
     if (isLoading) return <LoadingSpinner />;
     if (!enabled) return <Navigate to="/" />;
     if (!epochData) return null;
 
-    // todo: remove this when we have estimated end time in api
+    const validatorsTable = validatorsTableData(
+        epochData?.validators.active_validators,
+        epochData?.epoch!,
+        validatorEvents?.data!
+    );
+    // todo: remove this when we have this data in the api
     const {
         storageSize,
         gasCostSummary,
@@ -85,14 +106,25 @@ function EpochDetail() {
                 <TabGroup size="lg">
                     <TabList>
                         <Tab>Checkpoints</Tab>
+                        <Tab>Validators</Tab>
                     </TabList>
                     <TabPanels className="mt-4">
-                        {checkpointsTable ? (
-                            <TableCard
-                                data={checkpointsTable?.data}
-                                columns={checkpointsTable?.columns}
-                            />
-                        ) : null}
+                        <TabPanel>
+                            {checkpointsTable ? (
+                                <TableCard
+                                    data={checkpointsTable?.data}
+                                    columns={checkpointsTable?.columns}
+                                />
+                            ) : null}
+                        </TabPanel>
+                        <TabPanel>
+                            {validatorsTable ? (
+                                <TableCard
+                                    data={checkpointsTable?.data}
+                                    columns={checkpointsTable?.columns}
+                                />
+                            ) : null}
+                        </TabPanel>
                     </TabPanels>
                 </TabGroup>
             </div>
@@ -102,6 +134,7 @@ function EpochDetail() {
 
 export default () => {
     const gb = useGrowthBook();
+
     if (gb?.ready) {
         return <EpochDetail />;
     }
