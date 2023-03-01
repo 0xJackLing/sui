@@ -1125,6 +1125,7 @@ impl AuthorityState {
                 .map(|o| o.object_id()),
             effects
                 .all_mutated()
+                .into_iter()
                 .map(|(obj_ref, owner, _kind)| (*obj_ref, *owner)),
             cert.data()
                 .intent_message
@@ -1144,14 +1145,14 @@ impl AuthorityState {
         epoch_store: &Arc<AuthorityPerEpochStore>,
     ) -> Result<ObjectIndexChanges, SuiError> {
         let modified_at_version = effects
-            .modified_at_versions
+            .modified_at_versions()
             .iter()
             .cloned()
             .collect::<HashMap<_, _>>();
 
         let mut deleted_owners = vec![];
         let mut deleted_dynamic_fields = vec![];
-        for (id, _, _) in &effects.deleted {
+        for (id, _, _) in effects.deleted() {
             let old_version = modified_at_version.get(id).unwrap();
 
             match self.get_owner_at_version(id, *old_version)? {
@@ -1171,11 +1172,11 @@ impl AuthorityState {
             // For mutated objects, retrieve old owner and delete old index if there is a owner change.
             if let WriteKind::Mutate = kind {
                 let Some(old_version) = modified_at_version.get(id) else{
-                        error!("Error processing object owner index for tx [{:?}], cannot find modified at version for mutated object [{id}].", effects.transaction_digest);
+                        error!("Error processing object owner index for tx [{:?}], cannot find modified at version for mutated object [{id}].", effects.transaction_digest());
                         continue;
                     };
                 let Some(old_object) = self.database.get_object_by_key(id, *old_version)? else {
-                        error!("Error processing object owner index for tx [{:?}], cannot find object [{id}] at version [{old_version}].", effects.transaction_digest);
+                        error!("Error processing object owner index for tx [{:?}], cannot find object [{id}] at version [{old_version}].", effects.transaction_digest());
                         continue;
                     };
                 if &old_object.owner != owner {
@@ -1211,7 +1212,7 @@ impl AuthorityState {
                             digest: oref.2,
                             type_,
                             owner: *owner,
-                            previous_transaction: effects.transaction_digest,
+                            previous_transaction: *effects.transaction_digest(),
                         },
                     ));
                 }
@@ -2386,7 +2387,7 @@ impl AuthorityState {
         effects: TransactionEffects,
         epoch_store: &Arc<AuthorityPerEpochStore>,
     ) -> Result<VerifiedSignedTransactionEffects, SuiError> {
-        let tx_digest = effects.transaction_digest;
+        let tx_digest = *effects.transaction_digest();
         let signed_effects = match epoch_store.get_effects_signature(&tx_digest)? {
             Some(sig) if sig.epoch == epoch_store.epoch() => {
                 SignedTransactionEffects::new_from_data_and_sig(effects, sig)
@@ -2742,7 +2743,7 @@ impl AuthorityState {
         );
         epoch_store.record_is_safe_mode_metric(system_obj.safe_mode);
         // The change epoch transaction cannot fail to execute.
-        assert!(effects.status.is_ok());
+        assert!(effects.status().is_ok());
         Ok((system_obj, effects))
     }
 

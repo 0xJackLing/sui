@@ -321,7 +321,7 @@ impl ValidatorService {
                 .data()
                 .intent_message
                 .value
-                .kind
+                .kind()
                 .input_objects()
                 .map_err(SuiError::from)?
                 .into_iter()

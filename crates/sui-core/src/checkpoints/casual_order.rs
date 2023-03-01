@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use sui_types::base_types::TransactionDigest;
-use sui_types::messages::TransactionEffects;
+use sui_types::messages::{TransactionEffects, TransactionEffectsAPI};
 use sui_types::storage::ObjectKey;
 use tracing::trace;
 
@@ -76,10 +76,10 @@ struct TransactionDependencies {
 
 impl TransactionDependencies {
     fn from_effects(effects: TransactionEffects, rwlock_builder: &RWLockDependencyBuilder) -> Self {
-        let mut dependencies: BTreeSet<_> = effects.dependencies.iter().cloned().collect();
-        rwlock_builder.add_dependencies_for(effects.transaction_digest, &mut dependencies);
+        let mut dependencies: BTreeSet<_> = effects.dependencies().iter().cloned().collect();
+        rwlock_builder.add_dependencies_for(*effects.transaction_digest(), &mut dependencies);
         Self {
-            digest: effects.transaction_digest,
+            digest: *effects.transaction_digest(),
             dependencies,
             effects,
         }
@@ -120,12 +120,12 @@ impl RWLockDependencyBuilder {
         let mut overwrite_versions: HashMap<TransactionDigest, Vec<ObjectKey>> = Default::default();
         for effect in effects {
             let modified_at_versions: HashMap<_, _> =
-                effect.modified_at_versions.iter().cloned().collect();
-            for (obj, seq, _) in effect.shared_objects.iter() {
+                effect.modified_at_versions().iter().cloned().collect();
+            for (obj, seq, _) in effect.shared_objects().iter() {
                 if let Some(modified_seq) = modified_at_versions.get(obj) {
                     // write transaction
                     overwrite_versions
-                        .entry(effect.transaction_digest)
+                        .entry(*effect.transaction_digest())
                         .or_default()
                         .push(ObjectKey(*obj, *modified_seq));
                 } else {
@@ -133,7 +133,7 @@ impl RWLockDependencyBuilder {
                     read_version
                         .entry(ObjectKey(*obj, *seq))
                         .or_default()
-                        .push(effect.transaction_digest);
+                        .push(*effect.transaction_digest());
                 }
             }
         }

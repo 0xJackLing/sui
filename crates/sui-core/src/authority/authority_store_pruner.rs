@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::{sync::Arc, time::Duration};
 use sui_config::node::AuthorityStorePruningConfig;
 use sui_types::base_types::SequenceNumber;
-use sui_types::messages::TransactionEffects;
+use sui_types::messages::{TransactionEffects, TransactionEffectsAPI};
 use sui_types::object::Object;
 use sui_types::{
     base_types::{ObjectID, VersionNumber},
@@ -138,11 +138,11 @@ impl AuthorityStorePruner {
         let mut updates = HashMap::new();
 
         for effects in checkpoint_effects {
-            for (object_id, seq_number) in effects.modified_at_versions {
+            for (object_id, seq_number) in effects.modified_at_versions() {
                 updates
-                    .entry(object_id)
-                    .and_modify(|version| *version = max(*version, seq_number))
-                    .or_insert(seq_number);
+                    .entry(*object_id)
+                    .and_modify(|version| *version = max(*version, *seq_number))
+                    .or_insert(*seq_number);
             }
         }
         for (object_id, version) in updates {

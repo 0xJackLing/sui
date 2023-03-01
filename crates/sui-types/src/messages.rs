@@ -243,7 +243,7 @@ pub enum SingleTransactionKind {
 }
 
 impl VersionedProtocolMessage for SingleTransactionKind {
-    fn check_version_supported(&self, current_protocol_version: ProtocolVersion) -> SuiResult {
+    fn check_version_supported(&self, _current_protocol_version: ProtocolVersion) -> SuiResult {
         // This code does nothing right now - it exists to cause a compiler error when new
         // enumerants are added to SingleTransactionKind.
         //
@@ -995,7 +995,7 @@ impl TransactionKind {
         )
     }
 
-    fn validity_check(&self, gas_payment: &ObjectRef) -> UserInputResult {
+    pub fn validity_check(&self, gas_payment: &ObjectRef) -> UserInputResult {
         match self {
             TransactionKind::Batch(b) => {
                 fp_ensure!(
@@ -2742,6 +2742,7 @@ impl TransactionEffects {
 pub trait TransactionEffectsAPI {
     fn status(&self) -> &ExecutionStatus;
     fn executed_epoch(&self) -> EpochId;
+    fn modified_at_versions(&self) -> &[(ObjectID, SequenceNumber)];
     fn shared_objects(&self) -> &[ObjectRef];
     fn created(&self) -> &[(ObjectRef, Owner)];
     fn mutated(&self) -> &[(ObjectRef, Owner)];
@@ -2770,7 +2771,12 @@ impl TransactionEffectsAPI for TransactionEffectsV1 {
     fn status(&self) -> &ExecutionStatus {
         &self.status
     }
-
+    fn modified_at_versions(&self) -> &[(ObjectID, SequenceNumber)] {
+        &self.modified_at_versions
+    }
+    fn shared_objects(&self) -> &[ObjectRef] {
+        &self.shared_objects
+    }
     fn created(&self) -> &[(ObjectRef, Owner)] {
         &self.created
     }
@@ -2801,10 +2807,6 @@ impl TransactionEffectsAPI for TransactionEffectsV1 {
 
     fn executed_epoch(&self) -> EpochId {
         self.executed_epoch
-    }
-
-    fn shared_objects(&self) -> &[ObjectRef] {
-        &self.shared_objects
     }
 
     /// Return an iterator that iterates through all mutated objects, including mutated,
