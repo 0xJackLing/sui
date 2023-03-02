@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["commit_transactions","get_total_transaction_number","get_transaction_by_digest","read_latest_processed_checkpoint","read_transactions"],"struct":["NewTransaction","Transaction"]};
