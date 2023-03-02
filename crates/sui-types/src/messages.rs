@@ -1417,6 +1417,12 @@ pub trait TransactionDataAPI {
     fn is_system_tx(&self) -> bool;
     fn is_change_epoch_tx(&self) -> bool;
     fn is_genesis_tx(&self) -> bool;
+
+    #[cfg(test)]
+    fn sender_mut(&self) -> &mut SuiAddress;
+
+    #[cfg(test)]
+    fn gas_data_mut(&self) -> &mut GasData;
 }
 
 impl TransactionDataAPI for TransactionDataV1 {
@@ -1540,6 +1546,16 @@ impl TransactionDataAPI for TransactionDataV1 {
 
     fn is_genesis_tx(&self) -> bool {
         self.kind.is_genesis_tx()
+    }
+
+    #[cfg(test)]
+    fn sender_mut(&self) -> &mut SuiAddress {
+        &mut self.sender
+    }
+
+    #[cfg(test)]
+    fn gas_data_mut(&self) -> &mut GasData {
+        &mut self.gas_data
     }
 }
 
@@ -2719,6 +2735,16 @@ impl TransactionEffects {
         })
     }
 
+    pub fn execution_digests(&self) -> ExecutionDigests {
+        ExecutionDigests {
+            transaction: *self.transaction_digest(),
+            effects: self.digest(),
+        }
+    }
+}
+
+// testing helpers.
+impl TransactionEffects {
     pub fn new_with_tx(tx: &Transaction) -> TransactionEffects {
         Self::new_with_tx_and_gas(
             tx,
@@ -2735,13 +2761,6 @@ impl TransactionEffects {
             gas_object,
             ..Default::default()
         })
-    }
-
-    pub fn execution_digests(&self) -> ExecutionDigests {
-        ExecutionDigests {
-            transaction: *self.transaction_digest(),
-            effects: self.digest(),
-        }
     }
 }
 
@@ -2772,6 +2791,9 @@ pub trait TransactionEffectsAPI {
     fn gas_cost_summary(&self) -> &GasCostSummary;
 
     fn summary_for_debug(&self) -> TransactionEffectsDebugSummary;
+
+    #[cfg(test)]
+    fn gas_cost_summary_mut(&mut self) -> &mut GasCostSummary;
 }
 
 impl TransactionEffectsAPI for TransactionEffectsV1 {
@@ -2879,6 +2901,11 @@ impl TransactionEffectsAPI for TransactionEffectsV1 {
             event_count: self.events.len(),
             dependency_count: self.dependencies.len(),
         }
+    }
+
+    #[cfg(test)]
+    fn gas_cost_summary_mut(&mut self) -> &mut GasCostSummary {
+        &mut self.gas_used
     }
 }
 

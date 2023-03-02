@@ -15,7 +15,7 @@ use std::{collections::BTreeMap, sync::Arc};
 use sui_types::base_types::SuiAddress;
 use sui_types::crypto::get_key_pair;
 use sui_types::crypto::{deterministic_random_account_key, AccountKeyPair};
-use sui_types::messages::VerifiedTransaction;
+use sui_types::messages::{TransactionEffectsAPI, VerifiedTransaction};
 use sui_types::object::{generate_test_gas_objects, Object};
 use sui_types::quorum_driver_types::{QuorumDriverError, QuorumDriverResult};
 use sui_types::{base_types::TransactionDigest, messages::QuorumDriverResponse};
@@ -116,7 +116,7 @@ async fn verify_ticket_response<'a>(
     tx_digest: &TransactionDigest,
 ) {
     let QuorumDriverResponse { effects_cert } = ticket.await.unwrap();
-    assert_eq!(&effects_cert.data().transaction_digest, tx_digest);
+    assert_eq!(effects_cert.data().transaction_digest(), tx_digest);
 }
 
 #[tokio::test]
