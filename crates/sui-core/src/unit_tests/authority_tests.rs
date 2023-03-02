@@ -1782,7 +1782,8 @@ async fn test_transaction_expiration() {
 
     // Expired transaction returns an error
     let mut expired_data = data.clone();
-    expired_data.expiration = TransactionExpiration::Epoch(0);
+
+    *expired_data.expiration_mut() = TransactionExpiration::Epoch(0);
     let expired_transaction = to_sender_signed_transaction(expired_data, &sender_key);
     let result = authority_state
         .handle_transaction(expired_transaction)
@@ -1791,7 +1792,7 @@ async fn test_transaction_expiration() {
     assert!(matches!(result.unwrap_err(), SuiError::TransactionExpired));
 
     // Non expired transaction signed without issue
-    data.expiration = TransactionExpiration::Epoch(10);
+    *data.expiration_mut() = TransactionExpiration::Epoch(10);
     let transaction = to_sender_signed_transaction(data, &sender_key);
     authority_state
         .handle_transaction(transaction)
@@ -2531,7 +2532,7 @@ async fn test_move_call_delete() {
     .await
     .unwrap();
     assert!(effects.status().is_ok());
-    assert_eq!((effects.deleted.len(), effects.mutated().len()), (1, 1));
+    assert_eq!((effects.deleted().len(), effects.mutated().len()), (1, 1));
 }
 
 #[tokio::test]
@@ -2601,9 +2602,9 @@ async fn test_get_latest_parent_entry() {
         .unwrap();
     assert_eq!(obj_ref.0, new_object_id1);
     assert_eq!(obj_ref.1, update_version);
-    assert_eq!(effects.transaction_digest, tx);
+    assert_eq!(*effects.transaction_digest(), tx);
 
-    let delete_version = SequenceNumber::lamport_increment([obj_ref.1, effects.gas_object.0 .1]);
+    let delete_version = SequenceNumber::lamport_increment([obj_ref.1, effects.gas_object().0 .1]);
 
     let effects = call_move(
         &authority_state,
@@ -2641,7 +2642,7 @@ async fn test_get_latest_parent_entry() {
         .unwrap();
     assert_eq!(obj_ref.0, gas_object_id);
     assert_eq!(obj_ref.1, delete_version);
-    assert_eq!(effects.transaction_digest, tx);
+    assert_eq!(*effects.transaction_digest(), tx);
 
     // Check entry for deleted object is returned
     let (obj_ref, tx) = authority_state

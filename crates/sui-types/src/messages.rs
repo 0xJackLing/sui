@@ -1419,10 +1419,14 @@ pub trait TransactionDataAPI {
     fn is_genesis_tx(&self) -> bool;
 
     #[cfg(test)]
-    fn sender_mut(&self) -> &mut SuiAddress;
+    fn sender_mut(&mut self) -> &mut SuiAddress;
 
     #[cfg(test)]
-    fn gas_data_mut(&self) -> &mut GasData;
+    fn gas_data_mut(&mut self) -> &mut GasData;
+
+    // TODO: this should be #[cfg(test)], but for some reason it is not visible in
+    // authority_tests.rs even though that entire module is #[cfg(test)]
+    fn expiration_mut(&mut self) -> &mut TransactionExpiration;
 }
 
 impl TransactionDataAPI for TransactionDataV1 {
@@ -1549,13 +1553,17 @@ impl TransactionDataAPI for TransactionDataV1 {
     }
 
     #[cfg(test)]
-    fn sender_mut(&self) -> &mut SuiAddress {
+    fn sender_mut(&mut self) -> &mut SuiAddress {
         &mut self.sender
     }
 
     #[cfg(test)]
-    fn gas_data_mut(&self) -> &mut GasData {
+    fn gas_data_mut(&mut self) -> &mut GasData {
         &mut self.gas_data
+    }
+
+    fn expiration_mut(&mut self) -> &mut TransactionExpiration {
+        &mut self.expiration
     }
 }
 
