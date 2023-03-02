@@ -320,7 +320,7 @@ async fn test_dev_inspect_object_by_bytes() {
         .contents()
         .to_vec();
     // gas used should be the same
-    let actual_gas_used: SuiGasCostSummary = effects.gas_used().into();
+    let actual_gas_used: SuiGasCostSummary = effects.gas_cost_summary().clone().into();
     assert_eq!(actual_gas_used, dev_inspect_gas_summary);
 
     // use the created object directly, via its bytes
@@ -1058,7 +1058,7 @@ async fn test_handle_transfer_transaction_ok() {
         .unwrap();
 
     assert_eq!(
-        &account_info.status().into_signed_for_testing(),
+        &account_info.status.into_signed_for_testing(),
         pending_confirmation.auth_sig()
     );
 
@@ -1525,7 +1525,7 @@ async fn test_package_size_limit() {
         .unwrap()
         .1;
     assert_eq!(
-        signed_effects.status(),
+        *signed_effects.status(),
         ExecutionStatus::Failure {
             error: ExecutionFailureStatus::MovePackageTooBig {
                 object_size: package_size,
@@ -1553,7 +1553,7 @@ async fn test_handle_move_transaction() {
     .await
     .unwrap();
 
-    assert!(effects.status()().is_ok());
+    assert!(effects.status().is_ok());
     assert_eq!(effects.created().len(), 1);
     assert_eq!(effects.mutated().len(), 1);
 
@@ -1645,7 +1645,7 @@ async fn test_conflicting_transactions() {
             .unwrap();
 
         assert_eq!(
-            &ok.clone().status().into_signed_for_testing(),
+            &ok.clone().status.into_signed_for_testing(),
             object_info
                 .lock_for_debugging
                 .expect("object should be locked")
@@ -1653,7 +1653,7 @@ async fn test_conflicting_transactions() {
         );
 
         assert_eq!(
-            &ok.clone().status().into_signed_for_testing(),
+            &ok.clone().status.into_signed_for_testing(),
             gas_info
                 .lock_for_debugging
                 .expect("gas should be locked")
@@ -1868,7 +1868,7 @@ async fn test_type_argument_dependencies() {
         .handle_transaction(transaction)
         .await
         .unwrap()
-        .status()
+        .status
         .into_signed_for_testing();
     // obj type tag succeeds
     let data = TransactionData::new_move_call_with_dummy_gas_price(
@@ -1891,7 +1891,7 @@ async fn test_type_argument_dependencies() {
         .handle_transaction(transaction)
         .await
         .unwrap()
-        .status()
+        .status
         .into_signed_for_testing();
     // missing package fails
     let data = TransactionData::new_move_call_with_dummy_gas_price(
@@ -2286,7 +2286,7 @@ async fn test_handle_confirmation_transaction_idempotent() {
         .unwrap();
 
     assert_eq!(
-        info.status().into_effects_for_testing(),
+        info.status.into_effects_for_testing(),
         signed_effects.into_inner()
     );
 }
@@ -2418,7 +2418,7 @@ async fn test_move_call_insufficient_gas() {
         .await
         .unwrap()
         .into_message();
-    let gas_used = effects.gas_used().gas_used();
+    let gas_used = effects.gas_cost_summary().gas_used();
 
     let obj_ref = authority_state
         .get_object(&object_id)
@@ -2492,7 +2492,7 @@ async fn test_move_call_delete() {
     )
     .await
     .unwrap();
-    assert!(effects.status.is_ok());
+    assert!(effects.status().is_ok());
     assert_eq!((effects.created().len(), effects.mutated().len()), (1, 1));
     let (new_object_id2, _seq2, _) = effects.created()[0].0;
 
@@ -2512,7 +2512,7 @@ async fn test_move_call_delete() {
     )
     .await
     .unwrap();
-    assert!(effects.status.is_ok());
+    assert!(effects.status().is_ok());
     // All mutable objects will appear to be mutated, even if they are not.
     // obj1, obj2 and gas are all mutated here.
     assert_eq!((effects.created().len(), effects.mutated().len()), (0, 3));
@@ -2530,7 +2530,7 @@ async fn test_move_call_delete() {
     )
     .await
     .unwrap();
-    assert!(effects.status.is_ok());
+    assert!(effects.status().is_ok());
     assert_eq!((effects.deleted.len(), effects.mutated().len()), (1, 1));
 }
 
@@ -2973,7 +2973,7 @@ async fn test_transfer_sui_no_amount() {
     let effects = signed_effects.into_message();
     // Check that the transaction was successful, and the gas object is the only mutated object,
     // and got transferred. Also check on its version and new balance.
-    assert!(effects.status.is_ok());
+    assert!(effects.status().is_ok());
     assert!(effects.mutated_excluding_gas().next().is_none());
     assert!(gas_ref.1 < effects.gas_object.0 .1);
     assert_eq!(effects.gas_object.1, Owner::AddressOwner(recipient));
@@ -3017,7 +3017,7 @@ async fn test_transfer_sui_with_amount() {
     let effects = signed_effects.into_message();
     // Check that the transaction was successful, the gas object remains in the original owner,
     // and an amount is split out and send to the recipient.
-    assert!(effects.status.is_ok());
+    assert!(effects.status().is_ok());
     assert!(effects.mutated_excluding_gas().next().is_none());
     assert_eq!(effects.created().len(), 1);
     assert_eq!(effects.created()[0].1, Owner::AddressOwner(recipient));
@@ -3101,7 +3101,7 @@ async fn test_store_revert_wrap_move_call() {
     .await
     .unwrap();
 
-    assert!(create_effects.status.is_ok());
+    assert!(create_effects.status().is_ok());
     assert_eq!(create_effects.created().len(), 1);
 
     let object_v0 = create_effects.created()[0].0;
@@ -3129,7 +3129,7 @@ async fn test_store_revert_wrap_move_call() {
         .unwrap()
         .into_message();
 
-    assert!(wrap_effects.status.is_ok());
+    assert!(wrap_effects.status().is_ok());
     assert_eq!(wrap_effects.created().len(), 1);
     assert_eq!(wrap_effects.wrapped.len(), 1);
     assert_eq!(wrap_effects.wrapped[0].0, object_v0.0);
@@ -3168,7 +3168,7 @@ async fn test_store_revert_unwrap_move_call() {
     .await
     .unwrap();
 
-    assert!(create_effects.status.is_ok());
+    assert!(create_effects.status().is_ok());
     assert_eq!(create_effects.created().len(), 1);
 
     let object_v0 = create_effects.created()[0].0;
@@ -3184,7 +3184,7 @@ async fn test_store_revert_unwrap_move_call() {
     .await
     .unwrap();
 
-    assert!(wrap_effects.status.is_ok());
+    assert!(wrap_effects.status().is_ok());
     assert_eq!(wrap_effects.created().len(), 1);
     assert_eq!(wrap_effects.wrapped.len(), 1);
     assert_eq!(wrap_effects.wrapped[0].0, object_v0.0);
@@ -3214,7 +3214,7 @@ async fn test_store_revert_unwrap_move_call() {
         .unwrap()
         .into_message();
 
-    assert!(unwrap_effects.status.is_ok());
+    assert!(unwrap_effects.status().is_ok());
     assert_eq!(unwrap_effects.deleted.len(), 1);
     assert_eq!(unwrap_effects.deleted[0].0, wrapper_v0.0);
     assert_eq!(unwrap_effects.unwrapped.len(), 1);

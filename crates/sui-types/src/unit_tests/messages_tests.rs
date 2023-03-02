@@ -541,7 +541,7 @@ fn test_user_signature_committed_in_transactions() {
     );
 
     let mut tx_data_2 = tx_data.clone();
-    tx_data_2.gas_data().budget += 1;
+    tx_data_2.gas_data_mut().budget += 1;
 
     let transaction_a =
         Transaction::from_data_and_signer(tx_data.clone(), Intent::default(), vec![&sender_sec]);
@@ -925,7 +925,7 @@ fn verify_sender_signature_correctly_with_flag() {
     let sender_kp_3 = SuiKeyPair::Secp256r1(get_key_pair().1);
     let mut tx_data_3 = tx_data.clone();
     *tx_data_3.sender_mut() = (&sender_kp_3.public()).into();
-    tx_data_3.gas_data().owner = tx_data_3.sender();
+    tx_data_3.gas_data_mut().owner = tx_data_3.sender();
 
     let transaction =
         Transaction::from_data_and_signer(tx_data, Intent::default(), vec![&sender_kp])
