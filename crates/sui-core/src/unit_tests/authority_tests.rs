@@ -2,13 +2,10 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-//use super::*;
+use super::*;
 use crate::consensus_handler::SequencedConsensusTransaction;
 use crate::{
-    authority::{
-        move_integration_tests::build_and_publish_test_package, AuthorityState, AuthorityStore,
-        EpochStartConfiguration,
-    },
+    authority::move_integration_tests::build_and_publish_test_package,
     authority_client::{AuthorityAPI, NetworkAuthorityClient},
     authority_server::AuthorityServer,
     checkpoints::CheckpointServiceNoop,
@@ -35,10 +32,7 @@ use std::fs;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use sui_json_rpc_types::{
-    DevInspectResults, SuiEvent::TransferObject, SuiExecutionResult, SuiExecutionStatus,
-    SuiGasCostSummary,
-};
+use sui_json_rpc_types::{SuiExecutionResult, SuiExecutionStatus, SuiGasCostSummary};
 use sui_types::error::UserInputError;
 use sui_types::utils::{
     make_committee_key, mock_certified_checkpoint, to_sender_signed_transaction,
@@ -47,11 +41,8 @@ use sui_types::utils::{
 use sui_types::{SUI_CLOCK_OBJECT_ID, SUI_CLOCK_OBJECT_SHARED_VERSION, SUI_FRAMEWORK_OBJECT_ID};
 
 use crate::epoch::epoch_metrics::EpochMetrics;
-use move_core_types::language_storage::StructTag;
 use move_core_types::parser::parse_type_tag;
-use std::sync::Arc;
 use std::{convert::TryInto, env};
-use sui_macros::nondeterministic;
 use sui_macros::sim_test;
 use sui_protocol_config::{ProtocolConfig, SupportedProtocolVersions};
 use sui_types::dynamic_field::DynamicFieldType;
@@ -59,25 +50,16 @@ use sui_types::epoch_data::EpochData;
 use sui_types::object::Data;
 use sui_types::sui_system_state::SuiSystemStateWrapper;
 use sui_types::{
-    base_types::{
-        dbg_addr, dbg_object_id, get_new_address, random_object_ref, ObjectDigest, ObjectID,
-        SequenceNumber, SuiAddress, TransactionDigest, TxContext,
-    },
-    committee::Committee,
+    base_types::dbg_addr,
     crypto::{get_key_pair, Signature},
     crypto::{AccountKeyPair, AuthorityKeyPair, KeypairTraits},
-    error::SuiError,
-    messages::{
-        CallArg, CertifiedTransaction, ExecutionFailureStatus, ExecutionStatus, GasData, MoveCall,
-        ObjectArg, ObjectInfoRequest, SignedTransactionEffects, SingleTransactionKind,
-        TransactionData, TransactionDataAPI, TransactionExpiration, TransactionInfoRequest,
-        TransactionKind, VerifiedExecutableTransaction, VerifiedTransaction, DUMMY_GAS_PRICE,
-    },
-    object::{Object, Owner, GAS_VALUE_FOR_TESTING, OBJECT_START_VERSION},
+    messages::TransactionExpiration,
+    messages::VerifiedTransaction,
+    object::{Owner, GAS_VALUE_FOR_TESTING, OBJECT_START_VERSION},
     sui_system_state::SuiSystemState,
     SUI_SYSTEM_STATE_OBJECT_ID,
 };
-use tracing::{info, warn};
+use tracing::info;
 
 pub enum TestCallArg {
     Pure(Vec<u8>),
