@@ -8312,6 +8312,7 @@ dependencies = [
  "sui-framework",
  "sui-framework-build",
  "sui-json",
+ "sui-json-rpc",
  "sui-json-rpc-types",
  "sui-keys",
  "sui-macros",
